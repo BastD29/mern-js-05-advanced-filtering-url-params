@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function FilterTest1() {
   const [users, setUsers] = useState([]);
@@ -6,15 +7,16 @@ export default function FilterTest1() {
   const [age, setAge] = useState("");
   const [city, setCity] = useState("");
 
+  const location = useLocation();
+  const navigate = useNavigate();
+
   useEffect(() => {
     fetchUsers();
-  }, [name, age, city]);
+  }, [location.search]);
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(
-        `/api/?name=${name}&age=${age}&city=${city}`
-      );
+      const response = await fetch(`/api/${location.search}`);
       console.log("response", response);
       const data = await response.json();
       console.log("data", data);
@@ -24,19 +26,32 @@ export default function FilterTest1() {
     }
   };
 
+  const handleChange = (filterName, filterValue) => {
+    const params = new URLSearchParams(location.search);
+    console.log("params", params);
+
+    if (filterValue !== "") {
+      params.set(filterName, filterValue);
+    } else {
+      params.delete(filterName);
+    }
+
+    navigate({ search: params.toString() });
+  };
+
   return (
     <>
       <input
         type="text"
         placeholder="Search by name"
-        onChange={(e) => setName(e.target.value)}
+        onChange={(e) => handleChange("name", e.target.value)}
       />
-      <select onChange={(e) => setAge(e.target.value)}>
+      <select onChange={(e) => handleChange("age", e.target.value)}>
         <option value="">Select age</option>
         <option value="21">21</option>
         <option value="47">47</option>
       </select>
-      <select onChange={(e) => setCity(e.target.value)}>
+      <select onChange={(e) => handleChange("city", e.target.value)}>
         <option value="">Select city</option>
         <option value="New York">New York</option>
         <option value="Metropolis">Metropolis</option>
